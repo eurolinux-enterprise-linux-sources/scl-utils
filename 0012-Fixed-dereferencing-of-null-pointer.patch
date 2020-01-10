@@ -1,0 +1,37 @@
+From e9cfc08e665ef9128de307b9e8d55c9a6b5f51a5 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Wed, 6 Aug 2014 15:51:00 +0200
+Subject: [PATCH] Fixed dereferencing of null pointer
+
+---
+ scl.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/scl.c b/scl.c
+index d58719c10fff3c99bd36ebd2bf58495269eb6f4b..4c5aef6a97a9fb3a747426431f72c7c27fab7075 100644
+--- a/scl.c
++++ b/scl.c
+@@ -210,7 +210,7 @@ static char **read_script_output( char *ori_cmd ) {
+ 		exit(EXIT_FAILURE);
+ 	}
+ 
+-	if ((m = malloc(sb.st_size)) == NULL) {
++	if ((m = (char *)malloc(sb.st_size)) == NULL) {
+ 		fprintf(stderr, "Can't allocate memory.\n");
+ 		exit(EXIT_FAILURE);
+ 	}
+@@ -225,7 +225,10 @@ static char **read_script_output( char *ori_cmd ) {
+ 	unlink(tmp);
+ 
+ 	ls = 0x100;
+-	lines = malloc(ls*sizeof(char*));
++	if ((lines = (char **)malloc(ls*sizeof(char*))) == NULL) {
++        fprintf(stderr, "Unable to allocate memory.\n");
++        exit(EXIT_FAILURE);
++    }
+ 	*lines = NULL;
+ 
+ 	for (mp=m; mp && mp < &m[sb.st_size];) {
+-- 
+1.9.3
+

@@ -1,0 +1,36 @@
+From 78dec3f96c19caa78a7a1d2bed43760688605b40 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Mon, 4 Aug 2014 13:57:38 +0200
+Subject: [PATCH] Fixed main metapackage dependencies
+
+---
+ macros.scl | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/macros.scl b/macros.scl
+index 7ab52fc37e107827899725ba8ce9551e20705ce2..c3fe64677c6191fcab5d02c56183e62ddc772fc0 100644
+--- a/macros.scl
++++ b/macros.scl
+@@ -73,6 +73,7 @@ package or when debugging this package.
+ %global _mandir			%{_datadir}/man
+ %global _docdir			%{_datadir}/doc
+ %global _defaultdocdir		%{_docdir}
++}
+ %global scl_pkg_name		%{scl}-%{pkg_name}
+ %scl_debug
+ %global __os_install_post %{expand:
+@@ -91,7 +92,10 @@ package or when debugging this package.
+     %{!?__jar_repack:/usr/lib/rpm/redhat/brp-java-repack-jars}
+ %{nil}}
+ BuildRequires: scl-utils-build
+-}
++%if "%{?scl}%{!?scl:0}" == "%{pkg_name}"
++Requires: %{scl_runtime}
++Provides: scl-package(%{scl})
++%endif
+ %{?scl_package_override:%scl_package_override}
+ }
+ 
+-- 
+1.9.3
+

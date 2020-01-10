@@ -1,0 +1,196 @@
+From d0fe70ceb2c4a9e38f2314aadd047f6e026ca6d3 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Fri, 27 Sep 2013 12:33:17 +0200
+Subject: [PATCH] Implement "--" as a command separator
+
+Whatever comes after the first "--" will be considered a command. If there
+are multiple arguments after the first "--", they will all be concatenated by
+spaces and treated as a single command afterwards.
+---
+ scl.1 |  9 ++++++-
+ scl.c | 89 ++++++++++++++++++++++++++++++++++++++++++++++++++++---------------
+ 2 files changed, 77 insertions(+), 21 deletions(-)
+
+diff --git a/scl.1 b/scl.1
+index 839650026d9bfff1902d61e4bae2b7fa40cb0fa6..555f63147b6ca45d9927d2c3d1625312423df114 100644
+--- a/scl.1
++++ b/scl.1
+@@ -5,6 +5,8 @@ scl \- Setup and run software from Software Collection environment
+ .PP
+ \fBscl\fP \fI<action>\fR [\fI<collection1> <collection2> ...\fR] \fI<command>\fR
+ .PP
++\fBscl\fP \fI<action>\fR \fI<collection1>\fR [\fI<collection2> ...\fR] -- \fI<command>\fR
++.PP
+ \fBscl\fP {\fB-l|--list\fP}
+ .SH "DESCRIPTION"
+ .PP
+@@ -27,6 +29,10 @@ collections which are enabled by the left-right order as present on \fBscl\fP co
+ Collection environment enabled. Control is returned back to the caller with the original
+ environment as soon as the command finishes. It \fI<command>\fR is '-' (dash) then it is
+ read from the standard input.
++.PP
++Note that if you use \fI<command>\fR consisting of multiple arguments, you either need to
++use quotes or the \fB--\fP command separator. Everything that follows the
++separator will be considered a command or its argument.
+ .SH "OPTIONS"
+ .PP
+ .IP "\fB-l, --list\fP" 10
+@@ -51,4 +57,5 @@ scl -l example
+ list all packages within example collection
+ .SH "AUTHOR"
+ .PP
+-\fBscl\fP was written by Jindrich Novy <jnovy@redhat.com>.
++\fBscl\fP was written by Jindrich Novy <jnovy@redhat.com> and Jan Zeleny
++<jzeleny@redhat.com>
+diff --git a/scl.c b/scl.c
+index 8005fcaf05f4763d2982388ebf369b6baafb0eaf..0945f1c00cfc723b50795676543d547c7050c5a1 100644
+--- a/scl.c
++++ b/scl.c
+@@ -30,6 +30,8 @@
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ 
++#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
++
+ static void check_asprintf( char **strp, const char *fmt, ... ) {
+ 	va_list args;
+ 
+@@ -245,8 +247,10 @@ int main(int argc, char **argv) {
+ 	struct stat st;
+ 	char *path, *enablepath;
+ 	char tmp[] = "/var/tmp/sclXXXXXX";
+-	char *cmd = NULL, *bash_cmd, *echo, *enabled;
+-	int i, tfd, ffd, stdin_read = 0;
++	char *bash_cmd, *echo, *enabled;
++	int i, tfd, ffd;
++	int separator_pos = 0;
++	char *command = NULL;
+ 
+ 	if (argc == 2 && (!strcmp(argv[1],"--help") || !strcmp(argv[1],"-h"))) {
+ 		print_usage(argv[0]);
+@@ -263,25 +267,58 @@ int main(int argc, char **argv) {
+ 		exit(EXIT_SUCCESS);
+ 	}
+ 
+-	if (!strcmp(argv[argc-1], "-")) {	/* reading command from stdin */
+-		size_t r;
++	for (i = 0; i < argc; i++) {
++		if (strcmp(argv[i], "--") == 0) {
++			break;
++		}
++	}
++	separator_pos = i;
+ 
++	if (separator_pos == argc) {
++		/* Separator not found */
+ 		if (argc < 4) {
+-			fprintf(stderr, "Need at least 3 arguments.\nRun %s without arguments to get help.\n", argv[0]);
++			fprintf(stderr, "Need at least 3 arguments.\nRun %s --help to get help.\n", argv[0]);
+ 			exit(EXIT_FAILURE);
+ 		}
+ 
+-		cmd = malloc(BUFSIZ);
++		command = strdup(argv[argc-1]);
++		if (command == NULL) {
++			fprintf(stderr, "Can't duplicate string.\n");
++		}
++	} else if (separator_pos == argc-1) {
++		command = "-";
++	} else if (separator_pos <= 2) {
++		fprintf(stderr, "Need at least 2 arguments before command is specified.\nRun %s --help to get help.\n", argv[0]);
++		exit(EXIT_FAILURE);
++	} else {
++		command = NULL;
++	}
+ 
+-		if (!cmd) {
++	if ((command == NULL && !strcmp(argv[separator_pos+1], "-")) ||
++	    (command != NULL && !strcmp(command, "-"))) {	/* reading command from stdin */
++		size_t r;
++
++
++		command = malloc(BUFSIZ+1);
++		if (!command) {
+ 			fprintf(stderr, "Can't allocate memory.\n");
+ 			exit(EXIT_FAILURE);
+ 		}
+ 
+-		for (r=0; (r += fread(cmd+r, 1, BUFSIZ, stdin));) {
+-			if (feof(stdin)) break;
+-			cmd = realloc(cmd, r+BUFSIZ);
+-			if (!cmd) {
++		for (r=0; (r += fread(command+r, 1, BUFSIZ, stdin));) {
++			if (feof(stdin)) {
++				if (r % BUFSIZ == 0) {
++					command = realloc(command, r+1);
++					if (!command) {
++						fprintf(stderr, "Can't reallocate memory.\n");
++						exit(EXIT_FAILURE);
++					}
++				}
++				command[r] = '\0';
++				break;
++			}
++			command = realloc(command, r+BUFSIZ+1);
++			if (!command) {
+ 				fprintf(stderr, "Can't reallocate memory.\n");
+ 				exit(EXIT_FAILURE);
+ 			}
+@@ -290,15 +327,27 @@ int main(int argc, char **argv) {
+ 			fprintf(stderr, "Error reading command from stdin.\n");
+ 			exit(EXIT_FAILURE);
+ 		}
+-		stdin_read = 1;
+-	}
++	} else if (command == NULL) {
++		int len = 0;
++		for (i = separator_pos+1; i < argc; i++) {
++			len += strlen(argv[i])+3; /* +1 for additional space, +2 for additional quotes */
++		}
+ 
+-	if (!stdin_read) {
+-		if (argc < 4) {
+-			print_usage(argv[0]);
++		command = malloc((len+1)*sizeof(char));
++		if (command == NULL) {
++			fprintf(stderr, "Can't allocate memory.\n");
+ 			exit(EXIT_FAILURE);
+ 		}
+-		cmd = strdup(argv[argc-1]);
++
++		len = 0;
++		for (i = separator_pos+1; i < argc; i++) {
++			command[len++] = '"';
++			strcpy(command+len, argv[i]);
++			len += strlen(argv[i]);
++			command[len++] = '"';
++			command[len++] = ' ';
++		}
++		command[len] = '\0';
+ 	}
+ 
+ 	tfd = mkstemp(tmp);
+@@ -310,7 +359,7 @@ int main(int argc, char **argv) {
+ 	write_script(tfd, enabled);
+ 	free(enabled);
+ 
+-	for (i=2; i<argc-1; i++) {
++	for (i=2; i<MIN(separator_pos, argc-1); i++) {
+ 		FILE *f;
+ 		size_t r;
+ 		char scl_dir[BUFSIZ];
+@@ -364,9 +413,9 @@ int main(int argc, char **argv) {
+ 		free(path);
+ 	}
+ 
+-	write_script(tfd, cmd);
++	write_script(tfd, command);
+ 	write_script(tfd, "\n");
+-	free(cmd);
++	free(command);
+ 	close(tfd);
+ 
+ 	check_asprintf(&bash_cmd, "/bin/bash %s", tmp);
+-- 
+1.8.3.1
+

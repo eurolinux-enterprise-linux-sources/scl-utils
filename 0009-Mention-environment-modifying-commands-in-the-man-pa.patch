@@ -1,0 +1,33 @@
+From 063f87900f97903ca4c530f4e0ebff519f632352 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Fri, 22 Nov 2013 09:42:30 +0100
+Subject: [PATCH 01/19] Mention environment-modifying commands in the man page
+
+---
+ scl.1 | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/scl.1 b/scl.1
+index c9d322ddfa3671826c5f0f7c160fbc260d5007c9..cbefc44a7d539370065912021a62a39844a51f80 100644
+--- a/scl.1
++++ b/scl.1
+@@ -30,9 +30,15 @@ Collection environment enabled. Control is returned back to the caller with the
+ environment as soon as the command finishes. It \fI<command>\fR is '-' (dash) then it is
+ read from the standard input.
+ .PP
+-Note that if you use \fI<command>\fR consisting of multiple arguments, you either need to
++Note: if you use \fI<command>\fR consisting of multiple arguments, you either need to
+ use quotes or the \fB--\fP command separator. Everything that follows the
+ separator will be considered a command or its argument.
++.PP
++Note: some commands modify user environment in some way. Those commands may
++potentially break SCLs, as their activation also usually depends on env.
++modification as well. Typical examples of such commands are \fBsu\fP and
++\fBsudo\fP. Every collection modifies the environment differently, thus more
++details may be found in the documentation of the particular collection.
+ .SH "OPTIONS"
+ .PP
+ .IP "\fB-l, --list\fP" 10
+-- 
+1.9.0
+
