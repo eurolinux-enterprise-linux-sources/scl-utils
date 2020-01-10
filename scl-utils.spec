@@ -1,7 +1,7 @@
 Summary:	Utilities for alternative packaging
 Name:		scl-utils
 Version:	20120927
-Release:	27%{?dist}
+Release:	29%{?dist}
 License:	GPLv2+
 Group:		Applications/File
 URL:		http://jnovy.fedorapeople.org/scl-utils/
@@ -22,6 +22,7 @@ Patch10:    0011-Added-capability-to-register-and-deregister-collecti.patch
 Patch11:    0012-Fixed-dereferencing-of-null-pointer.patch
 Patch12:    0013-Fixed_main_metapackage_dependencies.patch
 Patch13:    0014-Add-capability-to-share-collections-using-nfs.patch
+Patch14:    scl-utils-20120927-shebang.patch
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -52,6 +53,7 @@ Essential RPM build macros for alternative packaging.
 %patch11 -p1 -b .deref
 %patch12 -p1 -b .meta-deps
 %patch13 -p1 -b .nfsmoutable
+%patch14 -p1 -b .shebang
 
 %build
 make %{?_smp_mflags} CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS"
@@ -89,6 +91,9 @@ rm -rf %buildroot
 %{_rpmconfigdir}/brp-scl-python-bytecompile
 
 %changelog
+* Tue Dec 13 2016 Joe Orton <jorton@redhat.com> - 20120927-29
+- fix "scl enable" usage in shebang lines (#1371936)
+
 * Wed Mar 11 2015 Lubos Kardos <lkardos@redhat.com> - 20120927-27
 - If macro buildsubdir doesn't exist then replace it with empty string.
 
@@ -239,7 +244,7 @@ rm -rf %buildroot
 * Mon Oct 17 2011 Jindrich Novy <jnovy@redhat.com> 20111017-1
 - initial packaging for upstream
 
-* Thu Sep 21 2011 Jindrich Novy <jnovy@redhat.com> 0.1-14
+* Thu Sep 22 2011 Jindrich Novy <jnovy@redhat.com> 0.1-14
 - define %%_defaultdocdir to properly relocate docs into
   a stack
 - document a way how to pass command to stack via stdin
