@@ -1,7 +1,7 @@
 Summary:	Utilities for alternative packaging
 Name:		scl-utils
 Version:	20120927
-Release:	23%{?dist}
+Release:	27%{?dist}
 License:	GPLv2+
 Group:		Applications/File
 URL:		http://jnovy.fedorapeople.org/scl-utils/
@@ -89,6 +89,19 @@ rm -rf %buildroot
 %{_rpmconfigdir}/brp-scl-python-bytecompile
 
 %changelog
+* Wed Mar 11 2015 Lubos Kardos <lkardos@redhat.com> - 20120927-27
+- If macro buildsubdir doesn't exist then replace it with empty string.
+
+* Thu Feb 05 2015 Lubos Kardos <lkardos@redhat.com> - 20120927-26
+- Remove /scls/ from macros  _sysconfdir, _sharedstatedir and _localstatedir
+
+* Tue Jan 27 2015 Lubos Kardos <lkardos@redhat.com> - 20120927-25
+- Creating filelist in build subdirectory instead of build directory.
+- Removing filelist before build.
+
+* Tue Jan 06 2015 Jan Zeleny <jzeleny@redhat.com> - 20120927-24
+- Reflect the state of %%nfsmountable macro in collections' rpm macro files
+
 * Wed Oct 08 2014 Lubos Kardos <lkardos@redhat.com - 20120927-23
 - Modified paths of state and conf files
 - Add owning and creating of state and conf files if nfsmountable is defined
@@ -129,23 +142,26 @@ rm -rf %buildroot
 
 * Tue Jun 17 2014 Albert Uchytil <auchytil@redhat.com> 20120827-14
 - updated man pages
-- changed debuginfo package handling (#1071834)
-- added capability of dynamically registering and deregistering collections (#1099394)
+- changed debuginfo package handling (#1113685)
+- capability to dynamically register and deregister collections (#1113686)
 
 * Tue Apr 22 2014 Albert Uchytil <auchytil@redhat.com> 20120827-13
 - fixed typo in macros.scl
 
 * Mon Apr 14 2014 Albert Uchytil <auchytil@redhat.com> 20120827-12
-- new dependency generators for RHEL6 (#1054820, #1052907)
+- new dependency generators for RHEL6 (#1075066, #1075067)
 
 * Fri Mar 28 2014 Jan Zeleny <jzeleny@redhat.com> - 20120827-11
 - reverted the last patch, as it breaks some collections. The revert
   is necessary for RHSCL compose, we are looking for other solutions.
 
-* Mon Mar 10 2014 Jan Zeleny <jzeleny@redhat.com> - 20120927-10
-- new dependency generators for RHEL6 (#1054820, #1052907)
+* Wed Mar 12 2014 Jan Zeleny <jzeleny@redhat.com> - 20120927-10
+- new dependency generators for RHEL6 (#1075067, #1075066)
 
-* Wed Nov 20 2013 Jan Zeleny <jzeleny@redhat.com> - 20120927-9
+* Mon Dec 03 2013 Jan Zeleny <jzeleny@redhat.com> - 20120927-8
+- back to the original versioning
+
+* Wed Nov 20 2013 Jan Zeleny <jzeleny@redhat.com> - 20120927-8.1
 - add scl_source script for intercollection dependencies (#874417)
 - updated macros in macros.scl-filesystem (#1029515, #1029516)
 - add delimiter between collections and command (#1029517)

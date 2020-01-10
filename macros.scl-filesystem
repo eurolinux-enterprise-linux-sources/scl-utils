@@ -88,11 +88,13 @@
 }
 
 %scl_install %{expand:
+rm -f $RPM_BUILD_DIR/%{?buildsubdir}/filelist
 # scl specific stuff
 mkdir -p %{buildroot}%{_root_sysconfdir}/{rpm,scl/prefixes}
-echo -n '%' > %{buildroot}%{_root_sysconfdir}/rpm/macros.%{scl}-config
 cat >> %{buildroot}%{_root_sysconfdir}/rpm/macros.%{scl}-config << EOF
-scl %scl
+%%%%scl %scl
+%{?nfsmountable:%%%%nfsmountable %{nfsmountable}}
+%{!?nfsmountable:%%%%undefine nfsmountable}
 EOF
 cat >> %{buildroot}%{_root_sysconfdir}/scl/prefixes/%{scl} << EOF
 %_scl_prefix
@@ -280,8 +282,8 @@ grep -v "^$" %{buildroot}/iso_639.tab | grep -v "^#" | while read a b c d ; do
     if [ "$locale" = "XX" ]; then
         locale=$b
     fi
-    echo "%lang(${locale})	%{_scl_root}/usr/share/locale/${locale}" >> $RPM_BUILD_DIR/filelist
-    echo "%lang(${locale}) %ghost %config(missingok) %{_scl_root}/usr/share/man/${locale}" >>$RPM_BUILD_DIR/filelist
+    echo "%lang(${locale})	%{_scl_root}/usr/share/locale/${locale}" >> $RPM_BUILD_DIR/%{?buildsubdir}/filelist
+    echo "%lang(${locale}) %ghost %config(missingok) %{_scl_root}/usr/share/man/${locale}" >>$RPM_BUILD_DIR/%{?buildsubdir}/filelist
 done
 cat %{buildroot}/lang-exceptions | grep -v "^#" | grep -v "^$" | while read loc ; do
     locale=$loc
@@ -300,22 +302,22 @@ cat %{buildroot}/lang-exceptions | grep -v "^#" | grep -v "^$" | while read loc 
         egrep -q "[[:space:]]${locale%%_*}[[:space:]]" \\
            %{buildroot}/iso_639.tab || continue
     fi
-    echo "%lang(${locale})	%{_scl_root}/usr/share/locale/${loc}" >> $RPM_BUILD_DIR/filelist
-    echo "%lang(${locale})  %ghost %config(missingok) %{_scl_root}/usr/share/man/${loc}" >> $RPM_BUILD_DIR/filelist
+    echo "%lang(${locale})	%{_scl_root}/usr/share/locale/${loc}" >> $RPM_BUILD_DIR/%{?buildsubdir}/filelist
+    echo "%lang(${locale})  %ghost %config(missingok) %{_scl_root}/usr/share/man/${loc}" >> $RPM_BUILD_DIR/%{?buildsubdir}/filelist
 done
 rm -f %{buildroot}/iso_639.tab
 rm -f %{buildroot}/iso_639.sed
 rm -f %{buildroot}/iso_3166.tab
 rm -f %{buildroot}/iso_3166.sed
 rm -f %{buildroot}/lang-exceptions
-cat $RPM_BUILD_DIR/filelist | grep "locale" | while read a b ; do
+cat $RPM_BUILD_DIR/%{?buildsubdir}/filelist | grep "locale" | while read a b ; do
     mkdir -p -m 755 %{buildroot}/$b/LC_MESSAGES
 done
-cat $RPM_BUILD_DIR/filelist | grep "/share/man" | while read a b c d; do
+cat $RPM_BUILD_DIR/%{?buildsubdir}/filelist | grep "/share/man" | while read a b c d; do
     mkdir -p -m 755 %{buildroot}/$d/man{1,2,3,4,5,6,7,8,9,n,1x,2x,3x,4x,5x,6x,7x,8x,9x,0p,1p,3p}
 done
 for i in `echo man{1,2,3,4,5,6,7,8,9,n,1x,2x,3x,4x,5x,6x,7x,8x,9x,0p,1p,3p}`; do
-   echo "%{_scl_root}/usr/share/man/$i" >>$RPM_BUILD_DIR/filelist
+   echo "%{_scl_root}/usr/share/man/$i" >>$RPM_BUILD_DIR/%{?buildsubdir}/filelist
 done
 set -x
 popd
