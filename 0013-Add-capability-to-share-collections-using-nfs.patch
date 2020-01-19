@@ -1,0 +1,31 @@
+From 5d045f6056750460e01f0b00d9004f64a6a6e1a6 Mon Sep 17 00:00:00 2001
+From: Lubos Kardos <lkardos@redhat.com>
+Date: Wed, 24 Sep 2014 10:27:47 +0200
+Subject: [PATCH] Add capability to share collections using nfs
+
+- Add macro nfsmountable. If this macro is defined then syconfdir and
+  localstatedir are moved from /opt to /etc and /var.
+---
+ macros.scl | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/macros.scl b/macros.scl
+index 67c76be..3bf00ce 100644
+--- a/macros.scl
++++ b/macros.scl
+@@ -65,8 +65,11 @@ package or when debugging this package.
+ %global _libexecdir		%{_exec_prefix}/libexec
+ %global _datadir		%{_prefix}/share
+ %global _sysconfdir		%{_scl_root}/etc
+-%global _sharedstatedir		%{_prefix}/com
++%{?nfsmountable:		%global _sysconfdir %{_root_sysconfdir}%{_scl_prefix}/scls/%{scl}}
++%global _sharedstatedir		%{_scl_root}/var/lib
++%{?nfsmountable:		%global _sharedstatedir %{_root_localstatedir}%{_scl_prefix}/scls/%{scl}/lib}
+ %global _localstatedir		%{_scl_root}/var
++%{?nfsmountable:		%global _localstatedir %{_root_localstatedir}%{_scl_prefix}/scls/%{scl}}
+ %global _libdir			%{_exec_prefix}/%{_lib}
+ %global _includedir		%{_prefix}/include
+ %global _infodir		%{_datadir}/info
+-- 
+1.9.3
+

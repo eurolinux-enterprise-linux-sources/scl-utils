@@ -1,0 +1,35 @@
+From d854427f573cba1f74c6e9141d31e5b2e31ca657 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Tue, 26 Aug 2014 13:44:12 +0200
+Subject: [PATCH] Introduce %scl_dependency_generators macro
+
+Up until now, collections with custom dependency generators used the
+%scl_package_override macro. However with the rewritten dependency
+dependency generators several commits back, this is no longer working,
+as the dependency generators defined in %scl_package are final. This
+macro can be now udes to override dependency generators in -build
+subpackages on anywhere else in a way compatible with the %scl_package
+definition.
+
+As an effect, dependency generators defined in
+%scl_dependency_generators macro will be taken into account when
+%generating automatic dependencies for SCLized packages.
+---
+ macros.scl | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/macros.scl b/macros.scl
+index 1500ab566f93b750873f5ebf752a0ce5a631f2a0..67c76be732d2f8abd54dc1af4da61a2c826432cc 100644
+--- a/macros.scl
++++ b/macros.scl
+@@ -74,6 +74,7 @@ package or when debugging this package.
+ %global _docdir			%{_datadir}/doc
+ %global _defaultdocdir		%{_docdir}
+ }
++%{?scl_dependency_generators:%scl_dependency_generators}
+ %global scl_pkg_name		%{scl}-%{pkg_name}
+ %scl_debug
+ %global __os_install_post %{expand:
+-- 
+1.9.3
+

@@ -1,0 +1,81 @@
+From b603a0b745fe01b410bb826422ad48b1df9d1da9 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Mon, 27 Jan 2014 10:23:36 +0100
+Subject: [PATCH] Various fixes in Provides and Requires of scl packages
+
+- add new Requires: %scl_runtime, to all scl packages
+  (every scl package requires the runtime to be installed anyway)
+- add new Provides: scl-package(%scl) for metapackage and build subpackage
+- exclude both from the main metapackage
+- move the _root_path conditional in macros.scl: when BuildArch is
+  specified in spec file, rpm recursively parses spec file again. That's
+  the reason why the conditional is there. However, when the wrong
+  pieces of code are included in in, it brings some problems. This
+  change keep only the path definition inside the conditional, the rest
+  can be easily redefined again.
+---
+ macros.scl | 8 ++++++--
+ scl.attr   | 3 ++-
+ scldeps.sh | 3 +++
+ 3 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/macros.scl b/macros.scl
+index 8b6377ee00fd26c89db1748c96e703e30214e9d9..d344b5e80f4fa6d97c7243df2f40847303eb26df 100644
+--- a/macros.scl
++++ b/macros.scl
+@@ -40,6 +40,7 @@
+ %global _mandir			%{_datadir}/man
+ %global _docdir			%{_datadir}/doc
+ %global _defaultdocdir		%{_docdir}
++}
+ %global scl_pkg_name		%{scl}-%{pkg_name}
+ %global __os_install_post %{expand:
+     /usr/lib/rpm/brp-scl-compress %{_scl_root}
+@@ -58,6 +59,7 @@
+ Summary: Debug information for package %{name}
+ Group: Development/Debug
+ AutoReqProv: 0
++Requires: %scl_runtime
+ Provides: scl-package(%scl)
+ %description debuginfo
+ This package provides debug information for package %{name}.
+@@ -68,10 +70,12 @@ package or when debugging this package.
+ %endif
+ %{nil}}
+ BuildRequires: scl-utils-build
+-}
++%if "%{?scl}%{!?scl:0}" == "%{pkg_name}"
++Requires: %{scl_runtime}
++Provides: scl-package(%{scl})
++%endif
+ %{?scl_package_override:%scl_package_override}
+ }
+ 
+ %scl_require()	%{_scl_prefix}/%1/enable, %1
+ %scl_require_package() %1-%2
+-
+diff --git a/scl.attr b/scl.attr
+index 3e546568261b996e065be3bfaed648d785466c36..068fc4a995443340428fd75b017affed069188d3 100644
+--- a/scl.attr
++++ b/scl.attr
+@@ -1,2 +1,3 @@
+ %__scl_provides	%{_rpmconfigdir}/scldeps.sh --provides %{scl}
+-%__scl_path	%{?scl:^%{_scl_prefix}/.*$}
++%__scl_requires %{_rpmconfigdir}/scldeps.sh --requires %{scl_runtime}
++%__scl_path	%{?scl:^%{_scl_prefix}/.*$ || %{_root_sysconfdir}/rpm/macros.%{scl}-config$}
+diff --git a/scldeps.sh b/scldeps.sh
+index 268d6bb5109f34d0e8da8c7d01816dcecffb6888..df8ddb3bb35b291de839bff0754c479958704030 100755
+--- a/scldeps.sh
++++ b/scldeps.sh
+@@ -9,5 +9,8 @@ case $1 in
+ -P|--provides)
+     echo -n "scl-package($2)"
+     ;;
++-R|--requires)
++    echo -n "$2"
++    ;;
+ esac
+ exit 0
+-- 
+1.9.3
+
