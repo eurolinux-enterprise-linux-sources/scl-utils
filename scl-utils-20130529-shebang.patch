@@ -1,0 +1,100 @@
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1372700
+
+Backported from scl-utils-2.0.
+
+--- scl-utils-20130529/scl.c.shebang
++++ scl-utils-20130529/scl.c
+@@ -35,6 +35,74 @@
+ #define SCL_CONF_DIR "/etc/scl/conf/"
+ #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+ 
++static int count_words(const char *str, char ch)
++{
++    int count = 0;
++    bool inside_word = false;
++
++    while (*str != '\0') {
++        if (*str != ch) {
++            if (!inside_word) {
++                count++;
++            }
++            inside_word = true;
++        } else {
++            inside_word = false;
++        }
++        str++;
++    }
++
++    return count;
++}
++
++/**
++ * Procedure to parse shebang line and transform it to standard command
++ *
++ * In general, the shebang line has n parts at the beginnning:
++ * argv[0] => the name of the utility stated in shebang
++ * argv[1] => all the arguments as one string
++ * argv[2] => the script which was executed
++ * argv[n] => argument for executed script
++ *
++ * Considering the following shebang line in script ./test.py:
++ * #!/usr/bin/scl enable collectionX
++ * argv[0] = "/usr/bin/scl"
++ * argv[1] = "enable collectionX"
++ * argv[2] = "./test.py"
++ * argv[n] = "argn"
++ */
++static void parse_shebang(int argc, char *argv[],
++			  int *_shebang_argc, char ***_shebang_argv) {
++    int i = 0;
++    char *p;
++    int shebang_argc;
++    char **shebang_argv;
++
++    shebang_argc = count_words(argv[1], ' ') + argc - 1;
++    shebang_argv = (char **)malloc(sizeof(char *) * shebang_argc);
++    if (shebang_argv == NULL) {
++        fprintf(stderr, "Can't allocate memory.\n");
++        exit(EXIT_FAILURE);
++    }
++
++    shebang_argv[i++] = argv[0];
++
++    p = strtok(argv[1], " ");
++    while (p != NULL) {
++        shebang_argv[i++] = p;
++        p = strtok(NULL, " ");
++    }
++
++    while (i < shebang_argc) {
++        shebang_argv[i] = argv[i - (shebang_argc - argc)];
++        i++;
++    }
++
++    *_shebang_argc = shebang_argc;
++    *_shebang_argv = shebang_argv;
++}
++
++
+ static void check_asprintf( char **strp, const char *fmt, ... ) {
+ 	va_list args;
+ 
+@@ -648,6 +716,17 @@
+ 		}
+ 	}
+ 
++	if (argc >= 3 && strchr(argv[1], ' ') != NULL) {
++		/* Apparently a shebang line */
++		char **fake_argv = argv;
++		int fake_argc = argc;
++		
++		parse_shebang(argc, argv, &fake_argc, &fake_argv);
++		
++		argc = fake_argc;
++		argv = fake_argv;
++	}
++
+ 	for (i = 0; i < argc; i++) {
+ 		if (strcmp(argv[i], "--") == 0) {
+ 			break;

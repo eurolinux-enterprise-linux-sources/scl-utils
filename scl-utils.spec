@@ -1,7 +1,7 @@
 Summary: Utilities for alternative packaging
 Name: scl-utils
 Version: 20130529
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv2+
 Group: Applications/File
 URL: https://fedorahosted.org/released/scl-utils/
@@ -21,6 +21,7 @@ Patch9: 0010-Added-capability-to-register-and-deregister-collecti.patch
 Patch10: 0011-Fix-missing-allocation-check-in-read_script_output.patch
 Patch11: 0012-Introduce-scl_dependency_generators-macro.patch
 Patch12: 0013-Add-capability-to-share-collections-using-nfs.patch
+Patch14: scl-utils-20130529-shebang.patch
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -50,6 +51,7 @@ Essential RPM build macros for alternative packaging.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch14 -p1 -b .shebang
 
 %build
 make %{?_smp_mflags} CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS"
@@ -96,7 +98,10 @@ rm -rf %buildroot
 %{_rpmconfigdir}/brp-scl-python-bytecompile
 
 %changelog
-* Thu Mar 08 2015 Lubos Karddos <lkardos@redhat.com> - 20130529-17
+* Fri Jan 13 2017 Joe Orton <jorton@redhat.com> - 20130529-18
+- fix "scl enable" usage in shebang lines (#1372700)
+
+* Thu Mar 05 2015 Lubos Karddos <lkardos@redhat.com> - 20130529-17
 - Remove /uucp/ from directory structure.
 
 * Thu Mar 05 2015 Lubos Karddos <lkardos@redhat.com> - 20130529-16
@@ -127,7 +132,7 @@ rm -rf %buildroot
 - Allow to use vendor prefix in packages names
 - Include %%nfsmountable macro into scl's rpm macros file
 
-* Wed Oct 23 2014 Lubos Kardos <lkardos@redhat.com - 20130529-9
+* Wed Oct 22 2014 Lubos Kardos <lkardos@redhat.com> - 20130529-9
 - "filesystem" is now symlink to file "filelist"
 
 * Wed Oct 08 2014 Lubos Kardos <lkardos@redhat.com - 20130529-8
@@ -265,7 +270,7 @@ Catch up with Fedora and RHEL6
 * Mon Oct 17 2011 Jindrich Novy <jnovy@redhat.com> 20111017-1
 - initial packaging for upstream
 
-* Wed Sep 21 2011 Jindrich Novy <jnovy@redhat.com> 0.1-14
+* Thu Sep 22 2011 Jindrich Novy <jnovy@redhat.com> 0.1-14
 - define %%_defaultdocdir to properly relocate docs into
   a stack
 - document a way how to pass command to stack via stdin
