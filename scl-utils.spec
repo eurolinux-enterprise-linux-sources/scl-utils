@@ -1,7 +1,7 @@
 Summary: Utilities for alternative packaging
 Name: scl-utils
 Version: 20130529
-Release: 19%{?dist}
+Release: 5%{?dist}
 License: GPLv2+
 Group: Applications/File
 URL: https://fedorahosted.org/released/scl-utils/
@@ -12,16 +12,6 @@ Patch0: 0001-Rename-attr-macros-so-they-are-correctly-named.patch
 Patch1: 0002-Implement-as-a-command-separator.patch
 Patch2: 0003-Mention-environment-modifying-commands-in-the-man-pa.patch
 Patch3: 0004-Check-whether-a-file-was-created-when-doing-mkstemp-.patch
-Patch4: 0005-Various-fixes-in-Provides-and-Requires-of-scl-packag.patch
-Patch5: 0006-Modified-the-behavior-of-debuginfo-generation-proces.patch
-Patch6: 0007-Changed-command-description-in-scl-man-pages.patch
-Patch7: 0008-Changed-script-paths-in-__os_install_post.patch
-Patch8: 0009-Remove-sclbuild-as-it-s-not-that-useful.patch
-Patch9: 0010-Added-capability-to-register-and-deregister-collecti.patch
-Patch10: 0011-Fix-missing-allocation-check-in-read_script_output.patch
-Patch11: 0012-Introduce-scl_dependency_generators-macro.patch
-Patch12: 0013-Add-capability-to-share-collections-using-nfs.patch
-Patch14: scl-utils-20130529-shebang.patch
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -42,16 +32,6 @@ Essential RPM build macros for alternative packaging.
 %patch1 -p1 -b .command-separator
 %patch2 -p1 -b .env-variables-man
 %patch3 -p1 -b .coverity-mkstemp
-%patch4 -p1
-%patch5 -p1
-%patch6 -p1
-%patch7 -p1
-%patch8 -p1
-%patch9 -p1
-%patch10 -p1
-%patch11 -p1
-%patch12 -p1
-%patch14 -p1 -b .shebang
 
 %build
 make %{?_smp_mflags} CFLAGS="$RPM_OPT_FLAGS" LDFLAGS="$RPM_LD_FLAGS"
@@ -91,6 +71,7 @@ rm -rf %buildroot
 %{!?_rpmconfigdir:%global _rpmconfigdir /usr/lib/rpm}
 %files build
 %defattr(-,root,root,-)
+%{_bindir}/sclbuild
 %{_sysconfdir}/rpm/macros.scl
 %{_rpmconfigdir}/scldeps.sh
 %{_rpmconfigdir}/fileattrs/scl.attr
@@ -98,75 +79,6 @@ rm -rf %buildroot
 %{_rpmconfigdir}/brp-scl-python-bytecompile
 
 %changelog
-* Mon Jun 18 2018 Joe Orton <jorton@redhat.com> - 20130529-19
-- own lib64 directories on aarch64, ppc64le (#1475718)
-
-* Fri Jan 13 2017 Joe Orton <jorton@redhat.com> - 20130529-18
-- fix "scl enable" usage in shebang lines (#1372700)
-
-* Thu Mar 05 2015 Lubos Karddos <lkardos@redhat.com> - 20130529-17
-- Remove /uucp/ from directory structure.
-
-* Thu Mar 05 2015 Lubos Karddos <lkardos@redhat.com> - 20130529-16
-- Remove /scls/ from macros  _sysconfdir, _sharedstatedir and _localstatedir
-
-* Tue Jan 27 2015 Lubos Karddos <lkardos@redhat.com> - 20130529-15
-- fixed wrong syntax of or-operator in scl.attr
-
-* Tue Jan 06 2015 Jan Zeleny <jzeleny@redhat.com> - 20142529-14
-- remove the vendor prefix from %%scl_install
-
-* Tue Jan 06 2015 Jan Zeleny <jzeleny@redhat.com> - 20130529-13
-- bump the version to get in sync with 7.1 branch
-- Reflect the state of %%nfsmountable macro in collections' rpm macro files
-- escape all the %% chars in changelog
-
-* Mon Jan 05 2015 Jan Zeleny <jzeleny@redhat.com> - 20132529-13
-- after a thorough discussion with scl maintainers, revert the vendor prefix
-  in package names
-
-* Fri Dec 12 2014 Jan Zeleny <jzeleny@redhat.com> - 20132529-12
-- the second half of the macro rename
-
-* Fri Dec 12 2014 Jan Zeleny <jzeleny@redhat.com> - 20130529-11
-- renamed %%scl_pkg_prefix to %%scl_full_prefix (#1167042)
-
-* Fri Dec 05 2014 Lubos Kardos <lkardos@redhat.com> - 20130529-10
-- Allow to use vendor prefix in packages names
-- Include %%nfsmountable macro into scl's rpm macros file
-
-* Wed Oct 22 2014 Lubos Kardos <lkardos@redhat.com> - 20130529-9
-- "filesystem" is now symlink to file "filelist"
-
-* Wed Oct 08 2014 Lubos Kardos <lkardos@redhat.com - 20130529-8
-- Modified paths of state and conf files
-- Add owning and creating of state and conf files if nfsmountable is defined
-- Add printing file names in error messages
-
-* Tue Sep 30 2014 Lubos Kardos <lkardos@redhat.com - 20130529-7
-Support for importing collections from NFS mounts
-- Add execution of register and deregister scripts during registration
-  and deregistration if they exist.
-- Add capability to make collection nfs mountable using macro nfsmountable.
-
-* Tue Aug 26 2014 Jan Zeleny <jzeleny@redhat.com> - 20130529-6
-Catch up with Fedora and RHEL6
-- add automatic Provides: scl-package(%%scl) to all scl packages
-  (except for metapackages)
-- add automatic Requires: %%scl_runtime to all scl packages
-  (except for metapackages)
-- the "filesystem" file renamed back to "filelist"
-- add correct dependencies to debug packages.
-- allow disabling debuginfo generation
-- remove automatic creation of debuginfo for metapackage.
-- rephrase command description in man page
-- fix system paths in __os_install_post
-- remove the sclbuild utility, as it's mostly useless
-- add the command set to register/deregister collection
-- fix missing allocation check in read_script_output()
-- drop recursive ownership of /usr/lib within SCL root
-- introduce %%scl_dependency_generators macro
-
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 20130529-5
 - Mass rebuild 2014-01-24
 
@@ -273,7 +185,7 @@ Catch up with Fedora and RHEL6
 * Mon Oct 17 2011 Jindrich Novy <jnovy@redhat.com> 20111017-1
 - initial packaging for upstream
 
-* Thu Sep 22 2011 Jindrich Novy <jnovy@redhat.com> 0.1-14
+* Wed Sep 21 2011 Jindrich Novy <jnovy@redhat.com> 0.1-14
 - define %%_defaultdocdir to properly relocate docs into
   a stack
 - document a way how to pass command to stack via stdin
