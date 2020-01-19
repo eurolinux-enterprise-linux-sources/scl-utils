@@ -1,7 +1,7 @@
 Summary: Utilities for alternative packaging
 Name: scl-utils
 Version: 20130529
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv2+
 Group: Applications/File
 URL: https://fedorahosted.org/released/scl-utils/
@@ -98,6 +98,9 @@ rm -rf %buildroot
 %{_rpmconfigdir}/brp-scl-python-bytecompile
 
 %changelog
+* Mon Jun 18 2018 Joe Orton <jorton@redhat.com> - 20130529-19
+- own lib64 directories on aarch64, ppc64le (#1475718)
+
 * Fri Jan 13 2017 Joe Orton <jorton@redhat.com> - 20130529-18
 - fix "scl enable" usage in shebang lines (#1372700)
 
