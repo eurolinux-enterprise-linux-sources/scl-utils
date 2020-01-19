@@ -1,0 +1,28 @@
+From 95d287071663ef5a0025c8ee136b31c905b63ae0 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Wed, 30 Jul 2014 10:24:26 +0200
+Subject: [PATCH] Fix missing allocation check in read_script_output()
+
+---
+ scl.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/scl.c b/scl.c
+index fcdebcbfd35dec2c4ff68536bc90771d439fc044..907f368a58f6f1b4ba75ec62ad95ebb535778903 100644
+--- a/scl.c
++++ b/scl.c
+@@ -217,7 +217,10 @@ static char **read_script_output( char *ori_cmd ) {
+ 	unlink(tmp);
+ 
+ 	ls = 0x100;
+-	lines = malloc(ls*sizeof(char*));
++	if ((lines = (char **)malloc(ls*sizeof(char*))) == NULL) {
++		fprintf(stderr, "Unable to allocate memory.\n");
++		exit(EXIT_FAILURE);
++	}
+ 	*lines = NULL;
+ 
+ 	for (mp=m; mp && mp < &m[sb.st_size];) {
+-- 
+1.9.3
+

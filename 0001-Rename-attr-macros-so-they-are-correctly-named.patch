@@ -1,0 +1,21 @@
+From 3a20a905f80bd1a0c85de1b4c449d29f238eeb29 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Mon, 18 Nov 2013 10:26:04 +0100
+Subject: [PATCH] Rename attr macros so they are correctly named
+
+---
+ scl.attr | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scl.attr b/scl.attr
+index 6521995388fdd4201f0b032abff9ce5287cb08dd..3e546568261b996e065be3bfaed648d785466c36 100644
+--- a/scl.attr
++++ b/scl.attr
+@@ -1,2 +1,2 @@
+-%__pkgconfig_provides	%{_rpmconfigdir}/scldeps.sh --provides %{scl}
+-%__pkgconfig_path	%{?scl:^%{_scl_prefix}/.*$}
++%__scl_provides	%{_rpmconfigdir}/scldeps.sh --provides %{scl}
++%__scl_path	%{?scl:^%{_scl_prefix}/.*$}
+-- 
+1.8.3.1
+

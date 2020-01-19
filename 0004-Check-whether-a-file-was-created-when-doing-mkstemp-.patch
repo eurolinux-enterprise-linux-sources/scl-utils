@@ -1,0 +1,39 @@
+From 2187471296c9a1ac0fb8cc08157949a637ad96c8 Mon Sep 17 00:00:00 2001
+From: Jan Zeleny <jzeleny@redhat.com>
+Date: Wed, 8 Jan 2014 09:23:46 +0100
+Subject: [PATCH 4/4] Check whether a file was created when doing mkstemp
+ (#1032666)
+
+---
+ scl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/scl.c b/scl.c
+index cf3ff5bfa7fce0b95705b0aa09946524d06801c5..fcdebcbfd35dec2c4ff68536bc90771d439fc044 100644
+--- a/scl.c
++++ b/scl.c
+@@ -105,6 +105,10 @@ static char **read_script_output( char *ori_cmd ) {
+ 	FILE *f;
+ 
+ 	tfd = mkstemp(tmp);
++	if (tfd < 0) {
++		fprintf(stderr, "Cannot create a temporary file: %s\n", tmp);
++		exit(EXIT_FAILURE);
++	}
+ 	check_asprintf(&cmd, "%s > %s", ori_cmd, tmp);
+ 	i = system(cmd);
+ 	free(cmd);
+@@ -350,6 +354,10 @@ int main(int argc, char **argv) {
+ 	}
+ 
+ 	tfd = mkstemp(tmp);
++	if (tfd < 0) {
++		fprintf(stderr, "Cannot create a temporary file: %s\n", tmp);
++		exit(EXIT_FAILURE);
++	}
+ 
+ 	check_asprintf(&enabled, "eval \"SCLS=( ${X_SCLS[*]} )\"\n");
+ 	write_script(tfd, enabled);
+-- 
+1.8.3.1
+
